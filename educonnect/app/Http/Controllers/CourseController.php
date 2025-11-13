@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CourseRequest;
+use App\Http\Requests\UpdateCourseRequest;
 use App\Models\Course;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class CourseController extends Controller
@@ -13,12 +16,13 @@ class CourseController extends Controller
         return response()->json($courses);
     }
 
-    public function store(Request $request)
+    public function store(CourseRequest $request)
     {
+        
         $course = Course::create([
             'title' => $request->title,
             'description' => $request->description,
-            'teacher_id' => $request->user()->id,
+            'teacher_id' =>  $request->user()->id,
         ]);
 
         return response()->json($course);
@@ -30,9 +34,8 @@ class CourseController extends Controller
         return response()->json($course);
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateCourseRequest $request, Course $course)
     {
-        $course = Course::find($id);
         $course->update([
             'title' => $request->title,
             'description' => $request->description,
@@ -48,10 +51,22 @@ class CourseController extends Controller
         return response()->json(['message' => 'Course deleted']);
     }
 
-    public function enroll(Request $request, $id)
-    {
-        $user = $request->user();
+            public function enroll(Request $request, $id){
+        $user=$request->user();
         $user->courses()->attach($id);
-        return response()->json(['message' => 'Enrolled successfully']);
-    }
+        return response()->json([
+        'message' => 'Enrolled successfully',
+        'course_id' => $id
+        ]);
+        }
+
+        public function unenroll(Request $request ,$id){
+        $user = $request->user();
+
+        $user->courses()->detach($id);
+        return response()->json([
+        'message' => 'Unenrolled successfully',
+        ]);
+        }
+
 }
